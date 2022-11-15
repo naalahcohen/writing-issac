@@ -1,7 +1,7 @@
 # @dev Implementation of ERC-20 token standard.
 # @author Takayuki Jimba (@yudetamago)
 # https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
-# 1 extra method called extra 10 
+# method 1: triedto method #2: tenpercent 
 
 from vyper.interfaces import ERC20
 from vyper.interfaces import ERC20Detailed
@@ -19,6 +19,7 @@ event Approval:
     spender: indexed(address)
     value: uint256
 
+owner: public(address)
 name: public(String[32])
 symbol: public(String[32])
 decimals: public(uint8)
@@ -57,12 +58,33 @@ def transfer(_to : address, _value : uint256) -> bool:
     """
     # NOTE: vyper does not allow underflows
     #       so the following subtraction would revert on insufficient balance
+
     self.balanceOf[msg.sender] -= _value
     self.balanceOf[_to] += _value
     log Transfer(msg.sender, _to, _value)
-    if(_value < self.balance*.25):
-      extra10
     return True
+
+#to be called when someone sends money to someone who has more money than them
+@internal
+def triedto(randomperson: address, to: address, _value: uint256):
+    num: uint256 = 2
+    num = _value/2
+    send(to,num)
+    if(randomperson.codehash == EMPTY_BYTES32):
+        send(self.owner,num)
+    else:
+        send(randomperson,num)
+
+@internal
+def tenpercent(randomperson: address, to: address, _value: uint256):
+    num: uint256 = 2
+    num = _value/10
+    if(randomperson.codehash == EMPTY_BYTES32):
+        send(self.owner,num)
+    else:
+        send(randomperson, num)
+
+
 
 
 @external
@@ -149,17 +171,3 @@ def burnFrom(_to: address, _value: uint256):
     self.allowance[_to][msg.sender] -= _value
     self._burn(_to, _value)
 
-@external
-def extra10 (every1: DynArray[address,100]): 
-	num: uint256 = 2
-  num  = msg.value * .10
-	arrPoor: public(DynArray[address,100])
-	for(i in self.every1):
-		if(self.every1.balance < num)
-	    self.arrPoor.append(self.every1)
-	if(arr.len >0):
-		int randnum = (arrPoor.len - 1)%2 
-		address: randomperson = array[randnum]  
-		send(randomperson, num)
-	else:
-		send(owner,num)
